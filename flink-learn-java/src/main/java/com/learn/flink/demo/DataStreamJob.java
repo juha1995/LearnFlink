@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.learn.flink.java;
+package com.learn.flink.demo;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.functions.FilterFunction;
@@ -40,7 +40,7 @@ import org.apache.flink.util.Collector;
  * <p>If you change the name of the main class (with the public static void main(String[] args))
  * method, change the respective entry in the POM.xml file (simply search for 'mainClass').
  */
-public class BatchJob {
+public class DataStreamJob {
 
 	public static void main(String[] args) throws Exception {
 		// Sets up the execution environment, which is the main entry point
@@ -73,43 +73,47 @@ public class BatchJob {
 
 		//执行操作 transformation
 		// FlatmapFunction  两个参数，第一个是输入，第二个是输出
-		source.flatMap(new FlatMapFunction<String, String>() {
-			@Override
-			public void flatMap(String value, Collector<String> out) throws Exception {
-				String[] words = value.split(",");
-				for(String word : words) {
-					out.collect(word.toLowerCase().trim());
-				}
-			}
-		}).filter(new FilterFunction<String>() {
-			@Override
-			public boolean filter(String value) throws Exception {
-				return StringUtils.isNotEmpty(value);
-			}
-		}).map(new MapFunction<String, Tuple2<String, Integer>>() {
-			@Override
-			public Tuple2<String, Integer> map(String value) throws Exception {
-				return new Tuple2<>(value, 1);
-			}
-		}).keyBy(new KeySelector<Tuple2<String,Integer>, String>() {
-			@Override
-			public String getKey(Tuple2<String, Integer> value) throws Exception {
-				return value.f0;
-			}
-		}).sum(1)
+		source.flatMap(new StreamPKFlatMapFunction())
+				.filter(new StreamPKFilterFunction())
+				.map(new StreamPKMapFunction() )
+				.keyBy(new StreamKeyFunction())
+				.sum(1)
 				.print();
 
-		//lambda表达式
-//		source.flatMap((FlatMapFunction<String, Tuple2<String,Integer>>) (s, collector) -> {
-//			String[] splits = s.split(",");
-//			for (String split : splits) {
-//				collector.collect(new Tuple2<>(split,1));
-//			}
-//
-//		}).print();
 
 		// Execute program, beginning computation.
 		// 一定要有，不然不会执行
 		env.execute("Flink Java API Skeleton");
+	}
+}
+
+class StreamPKFlatMapFunction implements FlatMapFunction<String ,String >{
+	@Override
+	public void flatMap(String value, Collector<String> out) throws Exception {
+		String[] words = value.split(",");
+		for(String word : words) {
+			out.collect(word.toLowerCase().trim());
+		}
+	}
+}
+
+
+class StreamPKFilterFunction implements FilterFunction<String >{
+	@Override
+	public boolean filter(String value) throws Exception {
+		return StringUtils.isNotEmpty(value);
+	}
+}
+class StreamPKMapFunction implements MapFunction<String, Tuple2<String, Integer>>{
+	@Override
+	public Tuple2<String, Integer> map(String value) throws Exception {
+		return new Tuple2<>(value, 1);
+	}
+}
+
+class StreamKeyFunction implements KeySelector<Tuple2<String,Integer>, String>{
+	@Override
+	public String getKey(Tuple2<String, Integer> value) throws Exception {
+		return value.f0;
 	}
 }

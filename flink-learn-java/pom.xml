@@ -58,13 +58,21 @@ under the License.
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-streaming-java</artifactId>
 			<version>${flink.version}</version>
-			<scope>provided</scope>
+<!--			<scope>provided</scope>-->
 		</dependency>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-clients</artifactId>
 			<version>${flink.version}</version>
-			<scope>provided</scope>
+<!--			<scope>provided</scope>-->
+		</dependency>
+
+		<!--	pg-cdc connector	-->
+		<dependency>
+			<groupId>com.ververica</groupId>
+			<artifactId>flink-connector-postgres-cdc</artifactId>
+			<!-- The dependency is available only for stable releases, SNAPSHOT dependency need build by yourself. -->
+			<version>2.3-SNAPSHOT</version>
 		</dependency>
 
 		<!-- Add connector dependencies here. They must be in the default scope (compile). -->
@@ -77,6 +85,11 @@ under the License.
 			<version>${flink.version}</version>
 		</dependency>
 		-->
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-connector-kafka</artifactId>
+			<version>${flink.version}</version>
+		</dependency>
 
 		<!-- Add logging framework, to produce console output when running in the IDE. -->
 		<!-- These dependencies are excluded from the application JAR by default. -->
@@ -151,7 +164,7 @@ under the License.
 							<transformers>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>com.learn.flink.java.DataStreamJob</mainClass>
+									<mainClass>com.learn.flink.demo.DataStreamJob</mainClass>
 								</transformer>
 							</transformers>
 						</configuration>
