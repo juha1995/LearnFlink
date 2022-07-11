@@ -47,47 +47,28 @@ public class DataStreamJob {
 		// to building Flink applications.
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		/*
-		 * Here, you can start creating your execution plan for Flink.
-		 *
-		 * Start with getting some data from the environment, like
-		 * 	env.fromSequence(1, 10);
-		 *
-		 * then, transform the resulting DataStream<Long> using operations
-		 * like
-		 * 	.filter()
-		 * 	.flatMap()
-		 * 	.window()
-		 * 	.process()
-		 *
-		 * and many more.
-		 * Have a look at the programming guide:
-		 *
-		 * https://nightlies.apache.org/flink/flink-docs-stable/
-		 *
-		 */
 
 		//source数据源
-		DataStreamSource<String> source = env.socketTextStream("localhost",8855);
+		DataStreamSource<String> source = env.socketTextStream("10.202.0.201",9394);
+
 
 
 		//执行操作 transformation
 		// FlatmapFunction  两个参数，第一个是输入，第二个是输出
-		source.flatMap(new StreamPKFlatMapFunction())
-				.filter(new StreamPKFilterFunction())
-				.map(new StreamPKMapFunction() )
-				.keyBy(new StreamKeyFunction())
+		source.flatMap(new SplitStringFunc())
+				.filter(new EmptyFilterFunction())
+				.map(new AddOneMapFunction() )
+				.keyBy(new KeyByFunction())
 				.sum(1)
 				.print();
 
 
-		// Execute program, beginning computation.
 		// 一定要有，不然不会执行
 		env.execute("Flink Java API Skeleton");
 	}
 }
 
-class StreamPKFlatMapFunction implements FlatMapFunction<String ,String >{
+class SplitStringFunc implements FlatMapFunction<String ,String >{
 	@Override
 	public void flatMap(String value, Collector<String> out) throws Exception {
 		String[] words = value.split(",");
@@ -98,20 +79,24 @@ class StreamPKFlatMapFunction implements FlatMapFunction<String ,String >{
 }
 
 
-class StreamPKFilterFunction implements FilterFunction<String >{
+class EmptyFilterFunction implements FilterFunction<String >{
 	@Override
 	public boolean filter(String value) throws Exception {
 		return StringUtils.isNotEmpty(value);
 	}
 }
-class StreamPKMapFunction implements MapFunction<String, Tuple2<String, Integer>>{
+
+/**
+ * 把 原来的字符串后面加上一个1，变成kv结构
+ */
+class AddOneMapFunction implements MapFunction<String, Tuple2<String, Integer>>{
 	@Override
 	public Tuple2<String, Integer> map(String value) throws Exception {
 		return new Tuple2<>(value, 1);
 	}
 }
 
-class StreamKeyFunction implements KeySelector<Tuple2<String,Integer>, String>{
+class KeyByFunction implements KeySelector<Tuple2<String,Integer>, String>{
 	@Override
 	public String getKey(Tuple2<String, Integer> value) throws Exception {
 		return value.f0;
