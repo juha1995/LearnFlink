@@ -1,0 +1,4 @@
+tom,25,F
+jerry,26,M
+lina,24,F
+tim,25,F
